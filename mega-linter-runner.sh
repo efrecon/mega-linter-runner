@@ -199,7 +199,9 @@ while IFS= read -r var; do
     FLAVOR_SUGGESTIONS \
     FORMATTERS_DISABLE_ERRORS \
     GIT_AUTHORIZATION_BEARER \
-    GITHUB_* \
+    GITHUB_TOKEN \
+    GITHUB_WORKSPACE \
+    GITHUB_OUTPUT \
     IGNORE_GENERATED_FILES \
     IGNORE_GITIGNORED_FILES \
     JAVASCRIPT_DEFAULT_STYLE \
@@ -232,7 +234,8 @@ while IFS= read -r var; do
     "DART_*" \
     "GO_*" \
     "GROOVY_*" \
-    "JAVA_*" \
+    "JAVA_CHECKSTYLE_*" \
+    "JAVA_PMD_*" \
     "JAVASCRIPT_*" \
     "JSX_*" \
     "KOTLIN_*" \
@@ -240,7 +243,7 @@ while IFS= read -r var; do
     "MAKEFILE_*" \
     "PERL_*" \
     "PHP_*" \
-    "POWERSHELL_*" \
+    "POWERSHELL_POWERSHELL_*" \
     "PYTHON_*" \
     "R_*" \
     "RAKU_*" \
@@ -249,7 +252,7 @@ while IFS= read -r var; do
     "SALESFORCE_*" \
     "SCALA_*" \
     "SQL_*" \
-    "SWIFT_*" \
+    "SWIFT_SWIFTLINT_*" \
     "TSX_*" \
     "TYPESCRIPT_*" \
     "VBDOTNET_*" \
@@ -285,6 +288,11 @@ while IFS= read -r var; do
 done <<EOF
 $(env | grep -Eo '^[^=]+')
 EOF
+
+if [ -n "${GITHUB_OUTPUT:-}" ]; then
+  verbose "Mounting GITHUB_OUTPUT file into container"
+  set -- -v "${GITHUB_OUTPUT}:${GITHUB_OUTPUT}:rw" "$@"
+fi
 
 verbose "Running: docker run $*"
 exec docker run "$@"

@@ -42,6 +42,12 @@ inputs:
     required: false
     default: ""
 
+outputs:
+  has_updated_sources:
+    description: >
+      0 if no source file has been updated, 1 if source files has been updated
+    value: ${{ steps.megalinter.outputs.has_updated_sources }}
+
 runs:
   using: composite
   steps:
@@ -49,7 +55,7 @@ runs:
       id: megalinter
       shell: bash
       run: |
-        ${{ github.action_path }}/megalinter.sh \
+        ${{ github.action_path }}/mega-linter-runner.sh \
           -d "${{ inputs.image }}" \
           -f "${{ inputs.flavor }}" \
           -R "${{ inputs.registry }}" \
