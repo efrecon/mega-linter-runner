@@ -1,0 +1,57 @@
+name: MegaLinter Runner
+description: >
+  MegaLinter analyzes 50 languages, 22 formats, 21 tooling formats, excessive
+  copy-pastes, spelling mistakes and security issues in your repository sources
+  with a GitHub Action, other CI tools or locally.
+
+  This action is a wrapper around the MegaLinter Docker image, behaves similarly
+  to the official mega-linter-runner, but is:
+
+  1. Able to use the GHCR image, which should be quicker to pull.
+  2. Will automatically pass the documented MegaLinter recognised environment
+     variables to the container.
+author: Emmanuel Frecon <efrecon+github@gmail.com>
+branding:
+  icon: check
+  color: green
+
+inputs:
+  version:
+    description: >
+      Version of the MegaLinter image to use. Defaults to `latest`, in which
+      case the latest stable version of the MegaLinter at the time of the run
+      will be used.
+    required: false
+    default: latest
+  flavor:
+    description: >
+      Flavor of the MegaLinter image to use. Defaults to `all`.
+    required: false
+    default: all
+  registry:
+    description: >
+      Docker registry to pull the MegaLinter image from. Defaults to
+      `ghcr.io`.
+    required: false
+    default: ghcr.io
+  image:
+    description: >
+      Docker image to use. Defaults to an empty string, in which case the image
+      will be constructed out of the `registry`, the `flavor` and the
+      `version`.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: MegaLinter
+      id: megalinter
+      shell: bash
+      run: |
+        ${{ github.action_path }}/megalinter.sh \
+          -d "${{ inputs.image }}" \
+          -f "${{ inputs.flavor }}" \
+          -R "${{ inputs.registry }}" \
+          -r "${{ inputs.version }}" \
+          -v
