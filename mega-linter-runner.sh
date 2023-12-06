@@ -199,7 +199,8 @@ while IFS= read -r var; do
     FLAVOR_SUGGESTIONS \
     FORMATTERS_DISABLE_ERRORS \
     GIT_AUTHORIZATION_BEARER \
-    GITHUB_* \
+    GITHUB_TOKEN \
+    GITHUB_WORKSPACE \
     IGNORE_GENERATED_FILES \
     IGNORE_GITIGNORED_FILES \
     JAVASCRIPT_DEFAULT_STYLE \
@@ -232,7 +233,8 @@ while IFS= read -r var; do
     "DART_*" \
     "GO_*" \
     "GROOVY_*" \
-    "JAVA_*" \
+    "JAVA_CHECKSTYLE_*" \
+    "JAVA_PMD_*" \
     "JAVASCRIPT_*" \
     "JSX_*" \
     "KOTLIN_*" \
