@@ -243,7 +243,7 @@ while IFS= read -r var; do
     "MAKEFILE_*" \
     "PERL_*" \
     "PHP_*" \
-    "POWERSHELL_*" \
+    "POWERSHELL_POWERSHELL_*" \
     "PYTHON_*" \
     "R_*" \
     "RAKU_*" \
@@ -252,7 +252,7 @@ while IFS= read -r var; do
     "SALESFORCE_*" \
     "SCALA_*" \
     "SQL_*" \
-    "SWIFT_*" \
+    "SWIFT_SWIFTLINT_*" \
     "TSX_*" \
     "TYPESCRIPT_*" \
     "VBDOTNET_*" \
