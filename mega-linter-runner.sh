@@ -201,6 +201,7 @@ while IFS= read -r var; do
     GIT_AUTHORIZATION_BEARER \
     GITHUB_TOKEN \
     GITHUB_WORKSPACE \
+    GITHUB_OUTPUT \
     IGNORE_GENERATED_FILES \
     IGNORE_GITIGNORED_FILES \
     JAVASCRIPT_DEFAULT_STYLE \
@@ -287,6 +288,11 @@ while IFS= read -r var; do
 done <<EOF
 $(env | grep -Eo '^[^=]+')
 EOF
+
+if [ -n "${GITHUB_OUTPUT:-}" ]; then
+  verbose "Mounting GITHUB_OUTPUT file into container"
+  set -- -v "${GITHUB_OUTPUT}:${GITHUB_OUTPUT}:rw" "$@"
+fi
 
 verbose "Running: docker run $*"
 exec docker run "$@"
