@@ -52,4 +52,4 @@ jobs:
           ENABLE: SHELL,YAML,MARKDOWN
           DISABLE_LINTERS: BASH_SHFMT
         with:
-          registry: ghcr.io
+          registry: docker.io
