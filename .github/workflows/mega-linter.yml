@@ -1,0 +1,54 @@
+name: MegaLinter
+
+on:
+  push:
+
+  pull_request:
+    branches:
+      - main
+      - master
+      - feature/**/main
+      - feature/**/master
+
+env:
+  APPLY_FIXES: none
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ghcr:
+    runs-on: ubuntu-latest
+    name: GHCR
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Mega-Linter
+        uses: ./
+        env:
+          VALIDATE_ALL_CODEBASE: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ENABLE: SHELL,YAML,MARKDOWN
+          DISABLE_LINTERS: BASH_SHFMT
+        with:
+          registry: ghcr.io
+  hub:
+    runs-on: ubuntu-latest
+    name: Docker Hub
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Mega-Linter
+        uses: ./
+        env:
+          VALIDATE_ALL_CODEBASE: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ENABLE: SHELL,YAML,MARKDOWN
+          DISABLE_LINTERS: BASH_SHFMT
+        with:
+          registry: ghcr.io
