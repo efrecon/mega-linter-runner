@@ -36,6 +36,7 @@ jobs:
           DISABLE_LINTERS: BASH_SHFMT
         with:
           registry: ghcr.io
+          flavor: documentation
   hub:
     runs-on: ubuntu-latest
     name: Docker Hub
@@ -53,3 +54,4 @@ jobs:
           DISABLE_LINTERS: BASH_SHFMT
         with:
           registry: docker.io
+          flavor: documentation
