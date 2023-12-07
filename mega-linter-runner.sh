@@ -1,9 +1,5 @@
 #!/bin/sh
 
-# This script outputs foldable HTML/markdown code to represent the git diff of
-# the files passed as parameters or (when no arg given) from all modified files
-# seen by git.
-
 # Shell sanity. Stop on errors and undefined variables.
 set -eu
 
@@ -41,7 +37,7 @@ usage() {
   echo "$0 Run the MegaLinter as a Docker container" && \
     grep "[[:space:]].)\ #" "$0" |
     sed 's/#//' |
-    sed -r 's/([a-z-])\)/-\1/'
+    sed -r 's/([a-zA-Z-])\)/-\1/'
   exit "${1:-0}"
 }
 
