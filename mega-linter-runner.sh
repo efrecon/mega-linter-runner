@@ -25,6 +25,10 @@ MLR_REGISTRY=${MLR_REGISTRY:-"ghcr.io"}
 # Docker image to use, empty to let other variables decide.
 MLR_IMAGE=${MLR_IMAGE:-""}
 
+# Environment variables to pass to the container, possibly with values. One
+# directive per **LINE**.
+MLR_ENV=${MLR_ENV:-""}
+
 # Location of the local docker socket to map into the container.
 MLR_SOCKET=${MLR_SOCKET:-"/var/run/docker.sock"}
 
@@ -41,10 +45,14 @@ usage() {
   exit "${1:-0}"
 }
 
-while getopts "d:f:p:r:R:vh-" opt; do
+while getopts "d:e:f:p:r:R:vh-" opt; do
   case "$opt" in
     d) # MegaLinter docker image to use (when empty: from -R, -f  and -r)
       MLR_IMAGE="$OPTARG";;
+    e) # Environment variables to pass to the container, possibly with values. Can be repeated.
+      # NOTE: Keep the formatting AS-IS. This is a multi-line variable.
+      MLR_ENV="$OPTARG
+${MLR_ENV}";;
     f) # MegaLinter flavor
       MLR_FLAVOR="$OPTARG";;
     p) # Directory containing the files to lint (default: current directory)
@@ -173,8 +181,18 @@ set -- \
   -v "${MLR_PATH}:/tmp/lint:rw" \
   "$MLR_IMAGE"
 
+# Enforce environment variables passed through the command line.
+while IFS= read -r varspec || [ -n "$varspec" ]; do
+  if [ -n "$varspec" ]; then
+    verbose "Passing $varspec to container"
+    set -- -e "$varspec" "$@"
+  fi
+done <<EOF
+$(printf %s\\n "$MLR_ENV")
+EOF
+
 # Pass all environment variables that start with one of the following patterns.
-# The patterns are the common variables recognised by the MegaLinter, followes
+# The patterns are the common variables recognised by the MegaLinter, followed
 # by the descriptor keys of the language linters, the formats linters and the
 # tooling formats linters.
 while IFS= read -r var; do
