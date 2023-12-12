@@ -54,10 +54,12 @@ runs:
     - name: MegaLinter
       id: megalinter
       shell: bash
+      # Pass the inputs to the action as environment variables. More secure:
+      # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections
+      env:
+        MLR_IMAGE: ${{ inputs.image }}
+        MLR_RELEASE: ${{ inputs.version }}
+        MLR_FLAVOR: ${{ inputs.flavor }}
+        MLR_REGISTRY: ${{ inputs.registry }}
       run: |
-        ${{ github.action_path }}/mega-linter-runner.sh \
-          -d "${{ inputs.image }}" \
-          -f "${{ inputs.flavor }}" \
-          -R "${{ inputs.registry }}" \
-          -r "${{ inputs.version }}" \
-          -v
+        ${{ github.action_path }}/mega-linter-runner.sh -v
