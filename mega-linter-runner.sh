@@ -213,6 +213,8 @@ while IFS= read -r var; do
     FLAVOR_SUGGESTIONS \
     FORMATTERS_DISABLE_ERRORS \
     GIT_AUTHORIZATION_BEARER \
+    GITHUB_ACTIONS \
+    GITHUB_EVENT_NAME \
     GITHUB_TOKEN \
     GITHUB_WORKSPACE \
     GITHUB_OUTPUT \
@@ -296,7 +298,13 @@ while IFS= read -r var; do
     "PUPPET_*" \
     "SNAKEMAKE_*" \
     "TEKTON_*" \
-    "TERRAFORM_*" ; do
+    "TERRAFORM_*" \
+    "GITLAB_CI" \
+    "CI_PIPELINE_SOURCE" \
+    "CI_MERGE_REQUEST_EVENT_TYPE" \
+    "CI_PROJECT_DIR" \
+    "TF_BUILD" \
+    "BUILD_REASON"; do
     if glob "$ptn" "$var"; then
       verbose "Passing $var to container"
       set -- -e "$var" "$@"
