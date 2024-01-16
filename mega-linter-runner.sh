@@ -135,6 +135,28 @@ glob() {
   return 1
 }
 
+# This is a readlink -f implementation so this script can (perhaps) run on MacOS
+abspath() {
+  is_abspath() {
+    case "$1" in
+      /* | ~*) true;;
+      *) false;;
+    esac
+  }
+
+  if [ -d "$1" ]; then
+    ( cd -P -- "$1" && pwd -P )
+  elif [ -L "$1" ]; then
+    if is_abspath "$(readlink "$1")"; then
+      abspath "$(readlink "$1")"
+    else
+      abspath "$(dirname "$1")/$(readlink "$1")"
+    fi
+  else
+    printf %s\\n "$(abspath "$(dirname "$1")")/$(basename "$1")"
+  fi
+}
+
 # When no image is given, build it from the registry, flavor and release.
 if [ -z "$MLR_IMAGE" ]; then
   # Empty flavor means all linters, so we use the all flavor.
@@ -171,21 +193,33 @@ else
 fi
 
 # Start building the Docker command that we will run
+WDIR=$(abspath "$MLR_PATH")
 set -- \
   --rm \
   -v "${MLR_SOCKET}:/var/run/docker.sock:rw" \
-  -v "${MLR_PATH}:/tmp/lint:rw" \
+  -v "${WDIR}:${WDIR}:rw" \
+  -w "$WDIR" \
   "$MLR_IMAGE"
 
 # Enforce environment variables passed through the command line.
+_workspace=0
 while IFS= read -r varspec || [ -n "$varspec" ]; do
   if [ -n "$varspec" ]; then
     verbose "Passing $varspec to container"
     set -- -e "$varspec" "$@"
+    if printf %s\\n "$varspec" | grep -q '^DEFAULT_WORKSPACE='; then
+      _workspace=1
+    fi
   fi
 done <<EOF
 $(printf %s\\n "$MLR_ENV")
 EOF
+
+if [ "$_workspace" = "0" ]; then
+  verbose "Exporting DEFAULT_WORKSPACE=${WDIR}"
+  DEFAULT_WORKSPACE=${WDIR}
+  export DEFAULT_WORKSPACE
+fi
 
 # Pass all environment variables that start with one of the following patterns.
 # The patterns are the common variables recognised by the MegaLinter, followed

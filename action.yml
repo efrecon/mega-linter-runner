@@ -41,6 +41,11 @@ inputs:
       `version`.
     required: false
     default: ""
+  workspace:
+    description: >
+      Directory to run the MegaLinter on. Defaults to the GitHub workspace.
+    required: false
+    default: ${{ github.workspace }}
 
 outputs:
   has_updated_sources:
@@ -61,5 +66,6 @@ runs:
         MLR_RELEASE: ${{ inputs.version }}
         MLR_FLAVOR: ${{ inputs.flavor }}
         MLR_REGISTRY: ${{ inputs.registry }}
+        MLR_PATH: ${{ inputs.workspace }}
       run: |
         ${{ github.action_path }}/mega-linter-runner.sh -v
