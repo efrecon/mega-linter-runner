@@ -195,11 +195,15 @@ fi
 # Start building the Docker command that we will run
 WDIR=$(abspath "$MLR_PATH")
 set -- \
+  --init \
   --rm \
   -v "${MLR_SOCKET}:/var/run/docker.sock:rw" \
   -v "${WDIR}:${WDIR}:rw" \
   -w "$WDIR" \
   "$MLR_IMAGE"
+if [ -t 0 ]; then
+  set -- -it "$@"
+fi
 
 # Enforce environment variables passed through the command line.
 _workspace=0
