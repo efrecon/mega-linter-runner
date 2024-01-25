@@ -68,4 +68,4 @@ runs:
         MLR_REGISTRY: ${{ inputs.registry }}
         MLR_PATH: ${{ inputs.workspace }}
       run: |
-        ${{ github.action_path }}/mega-linter-runner.sh -v
+        ${{ github.action_path }}/mega-linter-runner.sh -vv
