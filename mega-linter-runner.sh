@@ -26,6 +26,9 @@ MLR_IMAGE=${MLR_IMAGE:-""}
 # directive per **LINE**.
 MLR_ENV=${MLR_ENV:-""}
 
+# Docker client command to run
+MLR_DOCKER=${MLR_DOCKER:-"docker"}
+
 # Location of the local docker socket to map into the container.
 MLR_SOCKET=${MLR_SOCKET:-"/var/run/docker.sock"}
 
@@ -160,6 +163,10 @@ abspath() {
     printf %s\\n "$(abspath "$(dirname "$1")")/$(basename "$1")"
   fi
 }
+
+if ! command -v "$MLR_DOCKER" >/dev/null 2>&1; then
+    error "$MLR_DOCKER is not an executable command"
+fi
 
 # When no image is given, build it from the registry, flavor and release.
 if [ -z "$MLR_IMAGE" ]; then
@@ -361,5 +368,5 @@ if [ -n "${GITHUB_OUTPUT:-}" ]; then
   set -- -v "${GITHUB_OUTPUT}:${GITHUB_OUTPUT}:rw" "$@"
 fi
 
-trace "Running: docker run $*"
-exec docker run "$@"
+trace "Running: $MLR_DOCKER run $*"
+exec "$MLR_DOCKER" run "$@"
