@@ -3,7 +3,8 @@
 # Shell sanity. Stop on errors and undefined variables.
 set -eu
 
-# Verbosity
+# Level of verbosity, the higher the more verbose. All messages are sent to the
+# stderr.
 MLR_VERBOSE=${MLR_VERBOSE:-0}
 
 # Megalinter version to run
@@ -57,8 +58,8 @@ ${MLR_ENV}";;
       MLR_RELEASE="$OPTARG";;
     R) # Docker registry to use, e.g. ghcr.io, docker.io
       MLR_REGISTRY="$OPTARG";;
-    v) # Turn on verbosity, will otherwise log on errors/warnings only
-      MLR_VERBOSE=1;;
+    v) # Increase verbosity, will otherwise log on errors/warnings only
+      MLR_VERBOSE=$((MLR_VERBOSE+1));;
     h) # Print help and exit
       usage;;
     -) # End of options, everything after are path to files to process
@@ -78,8 +79,9 @@ _log() {
     "${1:-}" \
     >&2
 }
-# shellcheck disable=SC2015 # We are fine, this is just to never fail
-verbose() { [ "$MLR_VERBOSE" = "1" ] && _log "$1" NFO || true ; }
+trace() { if [ "${MLR_VERBOSE:-0}" -ge "3" ]; then _log "$1" TRC; fi; }
+debug() { if [ "${MLR_VERBOSE:-0}" -ge "2" ]; then _log "$1" DBG; fi; }
+verbose() { if [ "${MLR_VERBOSE:-0}" -ge "1" ]; then _log "$1" NFO; fi; }
 warn() { _log "$1" WRN; }
 error() { _log "$1" ERR && exit 1; }
 
@@ -89,8 +91,10 @@ error() { _log "$1" ERR && exit 1; }
 download() {
   if command -v curl >/dev/null; then
     curl -sSL -o "${2:-$(basename "$1")}" "$1"
+    debug "Downloaded $1 to ${2:-$(basename "$1")} (curl)"
   elif command -v wget >/dev/null; then
     wget -q -O "${2:-$(basename "$1")}" "$1"
+    debug "Downloaded $1 to ${2:-$(basename "$1")} (wget)"
   else
     error "Neither curl nor wget found, cannot download $1"
   fi
@@ -209,7 +213,7 @@ fi
 _workspace=0
 while IFS= read -r varspec || [ -n "$varspec" ]; do
   if [ -n "$varspec" ]; then
-    verbose "Passing $varspec to container"
+    debug "Passing $varspec to container"
     set -- -e "$varspec" "$@"
     if printf %s\\n "$varspec" | grep -q '^DEFAULT_WORKSPACE='; then
       _workspace=1
@@ -220,7 +224,7 @@ $(printf %s\\n "$MLR_ENV")
 EOF
 
 if [ "$_workspace" = "0" ]; then
-  verbose "Exporting DEFAULT_WORKSPACE=${WDIR}"
+  debug "Exporting DEFAULT_WORKSPACE=${WDIR}"
   DEFAULT_WORKSPACE=${WDIR}
   export DEFAULT_WORKSPACE
 fi
@@ -353,9 +357,9 @@ $(env | grep -Eo '^[^=]+')
 EOF
 
 if [ -n "${GITHUB_OUTPUT:-}" ]; then
-  verbose "Mounting GITHUB_OUTPUT file into container"
+  debug "Mounting GITHUB_OUTPUT file into container"
   set -- -v "${GITHUB_OUTPUT}:${GITHUB_OUTPUT}:rw" "$@"
 fi
 
-verbose "Running: docker run $*"
+trace "Running: docker run $*"
 exec docker run "$@"
