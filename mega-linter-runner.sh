@@ -127,21 +127,6 @@ gh_version() {
 }
 
 
-# Performs glob matching, little like Tcl. No support for |.
-# $1 is the matching pattern
-# $2 is the string to test against
-glob() {
-  # Disable globbing.
-  # This ensures that the case is not globbed.
-  _oldstate=$(set +o); set -f
-  # shellcheck disable=2254
-  case "$2" in
-    $1) set +vx; eval "$_oldstate"; return 0;;
-  esac
-  set +vx; eval "$_oldstate"
-  return 1
-}
-
 # This is a readlink -f implementation so this script can (perhaps) run on MacOS
 abspath() {
   is_abspath() {
@@ -236,12 +221,12 @@ if [ "$_workspace" = "0" ]; then
   export DEFAULT_WORKSPACE
 fi
 
-# Pass all environment variables that start with one of the following patterns.
-# The patterns are the common variables recognised by the MegaLinter, followed
-# by the descriptor keys of the language linters, the formats linters and the
-# tooling formats linters.
+# Pass all environment variables matching relevant patterns/names. These are the
+# common variables recognised by the MegaLinter, followed by the descriptor keys
+# of the language linters, the formats linters and the tooling formats linters.
 while IFS= read -r var; do
-  for ptn in \
+  # Exact matches on variable names
+  for v in \
     ADDITIONAL_EXCLUDED_DIRECTORIES \
     APPLY_FIXES \
     CLEAR_REPORT_FOLDER \
@@ -293,68 +278,81 @@ while IFS= read -r var; do
     SKIP_CLI_LINT_MODES \
     TYPESCRIPT_DEFAULT_STYLE \
     VALIDATE_ALL_CODEBASE \
-    "BASH_*" \
-    "C_*" \
-    "CLOJURE_*" \
-    "COFFEE_*" \
-    "CPP_*" \
-    "CSHARP_*" \
-    "DART_*" \
-    "GO_*" \
-    "GROOVY_*" \
-    "JAVA_CHECKSTYLE_*" \
-    "JAVA_PMD_*" \
-    "JAVASCRIPT_*" \
-    "JSX_*" \
-    "KOTLIN_*" \
-    "LUA_*" \
-    "MAKEFILE_*" \
-    "PERL_*" \
-    "PHP_*" \
-    "POWERSHELL_POWERSHELL_*" \
-    "PYTHON_*" \
-    "R_*" \
-    "RAKU_*" \
-    "RUBY_*" \
-    "RUST_*" \
-    "SALESFORCE_*" \
-    "SCALA_*" \
-    "SQL_*" \
-    "SWIFT_SWIFTLINT_*" \
-    "TSX_*" \
-    "TYPESCRIPT_*" \
-    "VBDOTNET_*" \
-    "CSS_*" \
-    "ENV_*" \
-    "GRAPHQL_*" \
-    "HTML_*" \
-    "JSON_*" \
-    "LATEX_*" \
-    "MARKDOWN_*" \
-    "PROTOBUF_*" \
-    "RST_*" \
-    "XML_*" \
-    "YAML_*" \
-    "ACTION_*" \
-    "ARM_*" \
-    "BICEP_*" \
-    "CLOUDFORMATION_*" \
-    "DOCKERFILE_*" \
-    "EDITORCONFIG_*" \
-    "GHERKIN_*" \
-    "KUBERNETES_*" \
-    "OPENAPI_*" \
-    "PUPPET_*" \
-    "SNAKEMAKE_*" \
-    "TEKTON_*" \
-    "TERRAFORM_*" \
-    "GITLAB_CI" \
-    "CI_PIPELINE_SOURCE" \
-    "CI_MERGE_REQUEST_EVENT_TYPE" \
-    "CI_PROJECT_DIR" \
-    "TF_BUILD" \
-    "BUILD_REASON"; do
-    if glob "$ptn" "$var"; then
+    GITLAB_CI \
+    CI_PIPELINE_SOURCE \
+    CI_MERGE_REQUEST_EVENT_TYPE \
+    CI_PROJECT_DIR \
+    TF_BUILD \
+    BUILD_REASON
+  do
+    if [ "$v" = "$var" ]; then
+      verbose "Passing $var to container"
+      set -- -e "$var" "$@"
+    fi
+  done
+
+  # Match the beginning of the variable name
+  for ptn in \
+    "BASH_" \
+    "C_" \
+    "CLOJURE_" \
+    "COFFEE_" \
+    "CPP_" \
+    "CSHARP_" \
+    "DART_" \
+    "GO_" \
+    "GROOVY_" \
+    "JAVA_CHECKSTYLE_" \
+    "JAVA_PMD_" \
+    "JAVASCRIPT_" \
+    "JSX_" \
+    "KOTLIN_" \
+    "LUA_" \
+    "MAKEFILE_" \
+    "PERL_" \
+    "PHP_" \
+    "POWERSHELL_POWERSHELL_" \
+    "PYTHON_" \
+    "R_" \
+    "RAKU_" \
+    "RUBY_" \
+    "RUST_" \
+    "SALESFORCE_" \
+    "SCALA_" \
+    "SQL_" \
+    "SWIFT_SWIFTLINT_" \
+    "TSX_" \
+    "TYPESCRIPT_" \
+    "VBDOTNET_" \
+    "CSS_" \
+    "ENV_" \
+    "GRAPHQL_" \
+    "HTML_" \
+    "JSON_" \
+    "LATEX_" \
+    "MARKDOWN_" \
+    "PROTOBUF_" \
+    "RST_" \
+    "XML_" \
+    "YAML_" \
+    "ACTION_" \
+    "ARM_" \
+    "BICEP_" \
+    "CLOUDFORMATION_" \
+    "DOCKERFILE_" \
+    "EDITORCONFIG_" \
+    "GHERKIN_" \
+    "KUBERNETES_" \
+    "OPENAPI_" \
+    "PUPPET_" \
+    "SNAKEMAKE_" \
+    "TEKTON_" \
+    "TERRAFORM_"
+  do
+    # When the pattern can be removed from the name of the variable name, the
+    # result is different than the variable name. Then the variable name matches
+    # the pattern.
+    if [ "${var#"$ptn"}" != "$var" ]; then
       verbose "Passing $var to container"
       set -- -e "$var" "$@"
     fi
