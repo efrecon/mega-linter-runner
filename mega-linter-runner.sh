@@ -149,6 +149,23 @@ abspath() {
   fi
 }
 
+operating_system() {
+  uname -o | tr '[:upper:]' '[:lower:]'
+}
+
+# Provided a path, return its absolute value so that it can be used as a host
+# path inside the docker run command, e.g. volume mounts.
+docker_abspath() {
+  if [ "$(operating_system)" = "msys" ]; then
+    # Enforce a double-slash at the front of the host path to the docker socket
+    # to make docker desktop on windows happy when running from git bash.
+    _path=$(abspath "$1")
+    printf %s\\n "//${_path##/}"
+  else
+    abspath "$1"
+  fi
+}
+
 if ! command -v "$MLR_DOCKER" >/dev/null 2>&1; then
     error "$MLR_DOCKER is not an executable command"
 fi
@@ -188,14 +205,14 @@ else
   verbose "Running MegaLinter ${MLR_RELEASE} (${MLR_FLAVOR}) on ${MLR_PATH}"
 fi
 
-# Start building the Docker command that we will run
+# Start building the Docker command that we will run.
 WDIR=$(abspath "$MLR_PATH")
 set -- \
   --init \
   --rm \
-  -v "${MLR_SOCKET}:/var/run/docker.sock:rw" \
-  -v "${WDIR}:${WDIR}:rw" \
-  -w "$WDIR" \
+  -v "$(docker_abspath "$MLR_SOCKET"):/var/run/docker.sock:rw" \
+  -v "$(docker_abspath "$WDIR"):${WDIR}:rw" \
+  -w "$(docker_abspath "$WDIR")" \
   "$MLR_IMAGE"
 if [ -t 0 ]; then
   set -- -it "$@"
@@ -217,7 +234,7 @@ EOF
 
 if [ "$_workspace" = "0" ]; then
   debug "Exporting DEFAULT_WORKSPACE=${WDIR}"
-  DEFAULT_WORKSPACE=${WDIR}
+  DEFAULT_WORKSPACE=$(docker_abspath "$WDIR")
   export DEFAULT_WORKSPACE
 fi
 
@@ -363,7 +380,7 @@ EOF
 
 if [ -n "${GITHUB_OUTPUT:-}" ]; then
   debug "Mounting GITHUB_OUTPUT file into container"
-  set -- -v "${GITHUB_OUTPUT}:${GITHUB_OUTPUT}:rw" "$@"
+  set -- -v "$(docker_abspath "$GITHUB_OUTPUT"):${GITHUB_OUTPUT}:rw" "$@"
 fi
 
 trace "Running: $MLR_DOCKER run $*"
