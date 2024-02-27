@@ -173,6 +173,10 @@ docker_abspath() {
   fi
 }
 
+# Return the size of the terminal in the same format as stty size, i.e. rows
+# first, followed by columns. Uses the $COLUMNS and $LINES variables in
+# priority, then tput (if found), then stty. Empty string when no guess is
+# possible.
 term_size() {
   if [ -n "${COLUMNS:-}" ] && [ -n "${LINES:-}" ]; then
     printf "%s  %s\n" "$LINES" "$COLUMNS"
