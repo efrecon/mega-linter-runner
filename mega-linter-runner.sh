@@ -103,6 +103,13 @@ download() {
   fi
 }
 
+check_command() {
+  trace "Checking $1 is an accessible command"
+  if ! command -v "$1" >/dev/null 2>&1; then
+    warn "Command not found: $1"
+    return 1
+  fi
+}
 
 # Guess version of GH project passed as a parameter using the tags in the HTML
 # description.
@@ -166,6 +173,20 @@ docker_abspath() {
   fi
 }
 
+term_size() {
+  if [ -n "${COLUMNS:-}" ] && [ -n "${LINES:-}" ]; then
+    printf "%s  %s\n" "$LINES" "$COLUMNS"
+  elif check_command tput; then
+    _cols=$(tput cols 2>/dev/null || true)
+    _lines=$(tput lines 2>/dev/null || true)
+    if [ -n "$_cols" ] && [ -n "$_lines" ]; then
+      printf "%s  %s\n" "$_lines" "$_cols"
+    fi
+  elif check_command stty; then
+    stty size 2>/dev/null || true
+  fi
+}
+
 if ! command -v "$MLR_DOCKER" >/dev/null 2>&1; then
     error "$MLR_DOCKER is not an executable command"
 fi
@@ -218,20 +239,62 @@ if [ -t 0 ]; then
   set -- -it "$@"
 fi
 
-# Enforce environment variables passed through the command line.
+# Enforce environment variables passed through the command line. If
+# DEFAULT_WORKSPACE is not one of them, we will set it to the current working
+# directory. Also, pass further COLUMNS and LINES if they are provided, or add
+# them if they can be guessed. This is to ensure that some linters (PowerShell)
+# behave properly.
 _workspace=0
+_columns=0
+_lines=0
 while IFS= read -r varspec || [ -n "$varspec" ]; do
   if [ -n "$varspec" ]; then
-    debug "Passing $varspec to container"
-    set -- -e "$varspec" "$@"
+    _pass_spec=1
     if printf %s\\n "$varspec" | grep -q '^DEFAULT_WORKSPACE='; then
       _workspace=1
+    fi
+    if printf %s\\n "$varspec" | grep -q '^COLUMNS'; then
+      if printf %s\\n "$varspec" | grep -qE '^COLUMNS=[0-9]+'; then
+        _columns=1
+      elif [ -n "${COLUMNS:-}" ]; then
+        _columns=1
+        varspec="COLUMNS=${COLUMNS}"
+      else
+        _pass_spec=0
+      fi
+    fi
+    if printf %s\\n "$varspec" | grep -q '^LINES'; then
+      if printf %s\\n "$varspec" | grep -qE '^LINES=[0-9]+'; then
+        _lines=1
+      elif [ -n "${LINES:-}" ]; then
+        _lines=1
+        varspec="LINES=${LINES}"
+      else
+        _pass_spec=0
+      fi
+    fi
+    if [ "$_pass_spec" = 1 ]; then
+      debug "Passing $varspec to container"
+      set -- -e "$varspec" "$@"
     fi
   fi
 done <<EOF
 $(printf %s\\n "$MLR_ENV")
 EOF
 
+term_size=$(term_size)
+if [ -n "$term_size" ]; then
+  if [ "$_columns" = "0" ]; then
+    debug "Passing COLUMNS=${term_size#* } to container"
+    set -- -e "COLUMNS=${term_size#* }" "$@"
+  fi
+  if [ "$_lines" = "0" ]; then
+    debug "Passing LINES=${term_size% *} to container"
+    set -- -e "LINES=${term_size% *}" "$@"
+  fi
+else
+  warn "Cannot guess terminal size, COLUMNS and LINES will not be passed to the container"
+fi
 if [ "$_workspace" = "0" ]; then
   debug "Exporting DEFAULT_WORKSPACE=${WDIR}"
   DEFAULT_WORKSPACE=$(docker_abspath "$WDIR")
