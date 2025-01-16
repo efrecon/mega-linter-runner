@@ -16,6 +16,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Allow mega-linter to write to the repository
+permissions:
+  issues: write
+  pull-requests: write
+
 jobs:
   ghcr:
     runs-on: ubuntu-24.04
