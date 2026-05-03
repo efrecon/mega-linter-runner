@@ -399,6 +399,7 @@ while IFS= read -r var; do
     "PYTHON_" \
     "R_" \
     "RAKU_" \
+    "REPOSITORY_" \
     "RUBY_" \
     "RUST_" \
     "SALESFORCE_" \
