@@ -313,13 +313,17 @@ while IFS= read -r var; do
   for v in \
     ADDITIONAL_EXCLUDED_DIRECTORIES \
     APPLY_FIXES \
+    BUILD_REASON \
+    CI_MERGE_REQUEST_EVENT_TYPE \
+    CI_PIPELINE_SOURCE \
+    CI_PROJECT_DIR \
     CLEAR_REPORT_FOLDER \
     DEFAULT_BRANCH \
     DEFAULT_WORKSPACE \
-    DISABLE_ERRORS \
     DISABLE \
-    DISABLE_LINTERS \
+    DISABLE_ERRORS \
     DISABLE_ERRORS_LINTERS \
+    DISABLE_LINTERS \
     ENABLE \
     ENABLE_LINTERS \
     EXCLUDED_DIRECTORIES \
@@ -333,12 +337,13 @@ while IFS= read -r var; do
     GIT_AUTHORIZATION_BEARER \
     GITHUB_ACTIONS \
     GITHUB_EVENT_NAME \
+    GITHUB_OUTPUT \
+    GITHUB_REF \
+    GITHUB_REPOSITORY \
+    GITHUB_RUN_ID \
     GITHUB_TOKEN \
     GITHUB_WORKSPACE \
-    GITHUB_OUTPUT \
-    GITHUB_REPOSITORY \
-    GITHUB_REF \
-    GITHUB_RUN_ID \
+    GITLAB_CI \
     IGNORE_GENERATED_FILES \
     IGNORE_GITIGNORED_FILES \
     JAVASCRIPT_DEFAULT_STYLE \
@@ -360,14 +365,9 @@ while IFS= read -r var; do
     SHOW_ELAPSED_TIME \
     SHOW_SKIPPED_LINTERS \
     SKIP_CLI_LINT_MODES \
-    TYPESCRIPT_DEFAULT_STYLE \
-    VALIDATE_ALL_CODEBASE \
-    GITLAB_CI \
-    CI_PIPELINE_SOURCE \
-    CI_MERGE_REQUEST_EVENT_TYPE \
-    CI_PROJECT_DIR \
     TF_BUILD \
-    BUILD_REASON
+    TYPESCRIPT_DEFAULT_STYLE \
+    VALIDATE_ALL_CODEBASE
   do
     if [ "$v" = "$var" ]; then
       verbose "Passing $var to container"
@@ -377,61 +377,66 @@ while IFS= read -r var; do
 
   # Match the beginning of the variable name
   for ptn in \
+    "ACTION_" \
+    "ANSIBLE_" \
+    "API_" \
+    "ARM_" \
     "BASH_" \
+    "BICEP_" \
     "C_" \
+    "CLOUDFORMATION_" \
     "CLOJURE_" \
     "COFFEE_" \
+    "COPYPASTE_" \
     "CPP_" \
     "CSHARP_" \
+    "CSS_" \
     "DART_" \
+    "DOCKERFILE_" \
+    "EDITORCONFIG_" \
+    "ENV_" \
+    "GHERKIN_" \
     "GO_" \
+    "GRAPHQL_" \
     "GROOVY_" \
-    "JAVA_CHECKSTYLE_" \
-    "JAVA_PMD_" \
+    "HTML_" \
+    "JAVA_" \
     "JAVASCRIPT_" \
+    "JSON_" \
     "JSX_" \
     "KOTLIN_" \
+    "KUBERNETES_" \
+    "LATEX_" \
     "LUA_" \
     "MAKEFILE_" \
+    "MARKDOWN_" \
+    "OPENAPI_" \
     "PERL_" \
     "PHP_" \
-    "POWERSHELL_POWERSHELL_" \
+    "POWERSHELL_" \
+    "PROTOBUF_" \
+    "PUPPET_" \
     "PYTHON_" \
     "R_" \
     "RAKU_" \
+    "REPOSITORY_" \
+    "ROBOTFRAMEWORK_" \
+    "RST_" \
     "RUBY_" \
     "RUST_" \
     "SALESFORCE_" \
     "SCALA_" \
+    "SNAKEMAKE_" \
+    "SPELL_" \
     "SQL_" \
-    "SWIFT_SWIFTLINT_" \
+    "SWIFT_" \
+    "TEKTON_" \
+    "TERRAFORM_" \
     "TSX_" \
     "TYPESCRIPT_" \
     "VBDOTNET_" \
-    "CSS_" \
-    "ENV_" \
-    "GRAPHQL_" \
-    "HTML_" \
-    "JSON_" \
-    "LATEX_" \
-    "MARKDOWN_" \
-    "PROTOBUF_" \
-    "RST_" \
     "XML_" \
-    "YAML_" \
-    "ACTION_" \
-    "ARM_" \
-    "BICEP_" \
-    "CLOUDFORMATION_" \
-    "DOCKERFILE_" \
-    "EDITORCONFIG_" \
-    "GHERKIN_" \
-    "KUBERNETES_" \
-    "OPENAPI_" \
-    "PUPPET_" \
-    "SNAKEMAKE_" \
-    "TEKTON_" \
-    "TERRAFORM_"
+    "YAML_"
   do
     # When the pattern can be removed from the name of the variable name, the
     # result is different than the variable name. Then the variable name matches

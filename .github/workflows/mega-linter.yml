@@ -39,7 +39,7 @@ jobs:
         env:
           VALIDATE_ALL_CODEBASE: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ENABLE: SHELL,YAML,MARKDOWN
+          ENABLE: BASH,YAML,MARKDOWN
           DISABLE_LINTERS: BASH_SHFMT
         with:
           registry: ghcr.io
@@ -64,7 +64,7 @@ jobs:
         env:
           VALIDATE_ALL_CODEBASE: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ENABLE: SHELL,YAML,MARKDOWN
+          ENABLE: BASH,YAML,MARKDOWN
           DISABLE_LINTERS: BASH_SHFMT
         with:
           registry: docker.io
